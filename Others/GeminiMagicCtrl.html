@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>点</title>
+    <style>
+        body { margin: 0; overflow: hidden; background: #000; font-family: sans-serif; }
+        /* 隐藏原始摄像头画面，只显示画布 */
+        #input_video { display: none; }
+        #output_canvas { width: 100vw; height: 100vh; transform: scaleX(-1); } /* 镜像显示 */
+        .info { position: fixed; top: 20px; left: 20px; color: #fff; pointer-events: none; }
+    </style>
+</head>
+<body>
+    <div class="info">Canvas正在加载模型并请求摄像头...<br>请挥动手掌试试！</div>
+    <video id="input_video"></video>
+    <canvas id="output_canvas"></canvas>
+
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+
+    <script>
+        const videoElement = document.getElementById('input_video');
+        const canvasElement = document.getElementById('output_canvas');
+        const canvasCtx = canvasElement.getContext('2d');
+        const info = document.querySelector('.info');
+
+        let particles = [];
+
+        // 粒子类：定义特效点
+        class Particle {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.size = Math.random() * 8 + 2;
+                this.speedX = (Math.random() - 0.5) * 5;
+                this.speedY = (Math.random() - 0.5) * 5;
+                this.color = `hsl(${Math.random() * 360}, 100%, 50%)`;
+                this.life = 1.0;
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                this.life -= 0.02;
+            }
+            draw() {
+                canvasCtx.fillStyle = this.color;
+                canvasCtx.globalAlpha = this.life;
+                canvasCtx.beginPath();
+                canvasCtx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                canvasCtx.fill();
+            }
+        }
+
+        function onResults(results) {
+            // 响应正常后隐藏加载文字
+            if (info) info.style.display = 'none';
+
+            // 设置画布大小
+            canvasElement.width = window.innerWidth;
+            canvasElement.height = window.innerHeight;
+
+            // 清除上一帧
+            canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+
+            if (results.multiHandLandmarks) {
+                for (const landmarks of results.multiHandLandmarks) {
+                    // 获取食指指尖坐标 (Landmark 8)
+                    const indexFinger = landmarks[8];
+                    const px = indexFinger.x * canvasElement.width;
+                    const py = indexFinger.y * canvasElement.height;
+
+                    // 每一帧产生新粒子
+                    for (let i = 0; i < 5; i++) {
+                        particles.push(new Particle(px, py));
+                    }
+                }
+            }
+
+            // 更新和绘制粒子
+            particles = particles.filter(p => p.life > 0);
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+        }
+
+        const hands = new Hands({
+            locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
+        });
+
+        hands.setOptions({
+            maxNumHands: 2,
+            modelComplexity: 1,
+            minDetectionConfidence: 0.5,
+            minTrackingConfidence: 0.5
+        });
+
+        hands.onResults(onResults);
+
+        const camera = new Camera(videoElement, {
+            onFrame: async () => {
+                await hands.send({image: videoElement});
+            },
+            width: 1280,
+            height: 720
+        });
+        camera.start();
+    </script>
+</body>
+</html>
