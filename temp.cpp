@@ -1,109 +1,71 @@
-#include <bits/stdc++.h>
-#define endl '\n'
+#include <iostream>
+#include <vector>
+#include <algorithm>
 using namespace std;
-typedef long long LL;
-inline LL read() {
-    LL s = 0, w = 1;
-    char ch = getchar();
-    while (ch < '0' || ch > '9') {
-//      if(ch=='-')w=-1;
-        ch = getchar();
-    }
-    while (ch >= '0' && ch <= '9') {
-        s = s * 10 + ch - '0', ch = getchar();
-    }
-    return s * w;
-}
-const int N = 1000005, LOGN = 21;
-LL n, a, u[100005], v[100005], bu, bv;
-vector<int> g[N];
-int dep[N], fa[N][LOGN];
-int cover[N];
-bool on_bad_path[N];
 
-void dfs(int u, int f) {
-    fa[u][0] = f;
-    dep[u] = dep[f] + 1;
-    for (int i = 1; i < LOGN; ++i) {
-        fa[u][i] = fa[fa[u][i-1]][i-1];
-    }
-    for (int v : g[u]) {
-        if (v == f) continue;
-        dfs(v, u);
-    }
-}
+int n, m;
+vector<vector<int>> enemy;   // 邻接表
+vector<int> selected;        // 当前尝试的选择
+vector<int> best;            // 最优解
+int bestCnt = 0;             // 最优人数
 
-int LCA(int u, int v) {
-    if (dep[u] < dep[v]) swap(u, v);
-    for (int k = LOGN-1; k >= 0; --k) {
-        if (dep[fa[u][k]] >= dep[v]) u = fa[u][k];
-    }
-    if (u == v) return u;
-    for (int k = LOGN-1; k >= 0; --k) {
-        if (fa[u][k] != fa[v][k]) {
-            u = fa[u][k]; v = fa[v][k];
+// 检查能否选第 x 个人
+bool canSelect(int x) {
+    for (int i = 1; i <= n; i++) {
+        if (selected[i] && enemy[x][i]) {
+            return false;
         }
     }
-    return fa[u][0];
+    return true;
 }
 
-void add_path(int u, int v) {
-    int l = LCA(u, v);
-    cover[u]++;
-    cover[v]++;
-    cover[l] -= 2;
-}
+void dfs(int idx, int cnt) {
+    // idx 从 n 到 1 搜索，当前考虑 idx 号居民
+    if (idx == 0) {
+        if (cnt > bestCnt) {
+            bestCnt = cnt;
+            best = selected;
+        }
+        return;
+    }
 
-void dfs_cover(int u, int f) {
-    for (int v : g[u]) {
-        if (v == f) continue;
-        dfs_cover(v, u);
-        cover[u] += cover[v];
+    // 剪枝：如果剩余人数 + 当前人数 <= bestCnt，不可能更优
+    if (cnt + idx <= bestCnt) return;
+
+    // 尝试选 idx
+    if (canSelect(idx)) {
+        selected[idx] = 1;
+        dfs(idx - 1, cnt + 1);
+        selected[idx] = 0;
+    }
+
+    // 尝试不选 idx
+    // 但如果不选 idx，还要考虑后面能否超过 bestCnt
+    if (cnt + idx - 1 > bestCnt) {
+        dfs(idx - 1, cnt);
     }
 }
 
-void mark_bad_path(int u, int v) {
-    int l = LCA(u, v);
-    auto mark = [&](int x, int stop) {
-        while (x != stop) {
-            on_bad_path[x] = true;
-            x = fa[x][0];
-        }
-    };
-    mark(u, l);
-    mark(v, l);
-    on_bad_path[l] = true;
-}
 int main() {
-    ios::sync_with_stdio(false);
-    cin.tie(nullptr);
-    cout.tie(nullptr);
-    cin >> n >> a;
-    for (int i = 1; i < n; ++i) {
-        int x, y;
-        cin >> x >> y;
-        g[x].push_back(y);
-        g[y].push_back(x);
+    cin >> n >> m;
+    enemy.assign(n + 1, vector<int>(n + 1, 0));
+    selected.assign(n + 1, 0);
+    best.assign(n + 1, 0);
+
+    for (int i = 0; i < m; i++) {
+        int u, v;
+        cin >> u >> v;
+        enemy[u][v] = 1;
+        enemy[v][u] = 1;
     }
-    dfs(1, 0);
-    for (int i = 1; i <= a; ++i) {
-        cin >> u[i] >> v[i];
-        add_path(u[i], v[i]);
+
+    dfs(n, 0);
+
+    cout << bestCnt << endl;
+    for (int i = 1; i <= n; i++) {
+        cout << best[i] << " ";
     }
-    dfs_cover(1, 0);
-    cin >> bu >> bv;
-    mark_bad_path(bu, bv);
-    int ans = 0;
-    for (int i = 1; i <= n; ++i) {
-        if (i == bu || i == bv) continue;
-        if (cover[i] == 0 && on_bad_path[i]) ++ans;
-    }
-    cout << ans << '\n';
+    cout << endl;
+
     return 0;
 }
-/*
-=====================================================================
-                         TTHILLTT.github.io                         |
-                         Visual Studio Code                         |
-=====================================================================
-*/
