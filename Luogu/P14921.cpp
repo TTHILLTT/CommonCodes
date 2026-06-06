@@ -2,55 +2,47 @@
 #define endl '\n'
 using namespace std;
 typedef long long LL;
-LL n, m, r[2005];
-vector<LL> g[2005];
-void bfs(LL s) {
-    queue<LL> q;
-    q.push(s);
-    while (!q.empty()) {
-        LL u = q.front();
-        q.pop();
-        for (LL v : g[u]) {
-            if (r[v] == 0 && v != s) {
-                r[v] = r[u] + 1;
-                q.push(v);
-            }
-        }
-    }
-}
 int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
-    cout.tie(nullptr);
+    LL n, m;
     cin >> n >> m;
-    for (LL i = 1; i <= m; i++) {
+    vector<vector<LL>> adj(n + 1);
+    for (LL i = 0; i < m; i++) {
         LL u, v;
         cin >> u >> v;
-        g[u].push_back(v);
-        g[v].push_back(u);
+        adj[u].push_back(v);
+        adj[v].push_back(u);
     }
-    LL ans = 0, cnt = 0x3f3f3f3f3f3f3f3f;
-    for (LL i = 1; i <= n; i++) {
-        memset(r, 0, sizeof r);
-        bfs(i);
-        LL res = 0;
-        // cout << i << ": ";
-        for (LL j = 1; j <= n; j++) {
-            // cout << r[j] << " ";
-            res = max(res, r[j]);
+    LL ans = 1, min_ecc = n;
+    for (LL start = 1; start <= n; start++) {
+        vector<LL> dist(n + 1, -1);
+        queue<LL> q;
+        dist[start] = 0;
+        q.push(start);
+        LL ecc = 0;
+        while (!q.empty()) {
+            LL u = q.front();
+            q.pop();
+            ecc = max(ecc, dist[u]);
+            for (LL v : adj[u]) {
+                if (dist[v] == -1) {
+                    dist[v] = dist[u] + 1;
+                    q.push(v);
+                }
+            }
         }
-        // cout << endl;
-        if (res < cnt) {
-            cnt = res, ans = i;
+        if (ecc < min_ecc) {
+            min_ecc = ecc;
+            ans = start;
         }
     }
-    cout << ans;
+    cout << ans << endl;
     return 0;
 }
 /*
-========================================================================
-                        Programed by KaoXiqi                           |
-                         TTHILLTT.github.io                            |
-                    Powered by Visual Studio Code                      |
-========================================================================
+=====================================================================
+                         TTHILLTT.github.io                         |
+                         Visual Studio Code                         |
+=====================================================================
 */

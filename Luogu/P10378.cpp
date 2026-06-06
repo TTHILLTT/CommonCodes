@@ -1,50 +1,47 @@
 #include <bits/stdc++.h>
-#define endl '\n'
 using namespace std;
 typedef long long LL;
-bool vis[100005];
-LL cnt1, cnt2, ans1, ans2, n, m;
-vector<LL> G[100005];
-void dfs(LL u, LL tag) {
-    vis[u] = true;
-    if (tag == 1) {
-        cnt1++;
-    }
-    else {
-        cnt2++;
-    }
-    for (LL v : G[u]) {
-        if (!vis[v]) {
-            dfs(v, 3 - tag);
-        }
-    }
-}
+LL n, m, color[100005];
+vector<LL> g[100005];
 int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
     cout.tie(nullptr);
-    //freopen(".in","r",stdin);
-    //freopen(".out","w",stdout);
     cin >> n >> m;
-    for (int i = 1; i <= m; i++) {
+    for (LL i = 0; i < m; i++) {
         LL u, v;
         cin >> u >> v;
-        G[u].push_back(v);
-        G[v].push_back(u);
+        g[u].push_back(v);
+        g[v].push_back(u);
     }
+    memset(color, -1, sizeof(color));
+    LL minB = 0, maxB = 0;
     for (LL i = 1; i <= n; i++) {
-        cnt1 = cnt2 = 0;
-        dfs(i, 1);
-        ans1 += max(cnt1, cnt2);
-        ans2 += min(cnt1, cnt2);
+        if (color[i] != -1) {
+            continue;
+        }
+        queue<LL> q;
+        q.push(i);
+        color[i] = 0;
+        LL cnt0 = 0, cnt1 = 0;
+        while (!q.empty()) {
+            LL u = q.front(); q.pop();
+            if (color[u] == 0) {
+                cnt0++;
+            }
+            else {
+                cnt1++;
+            }
+            for (LL v : g[u]) {
+                if (color[v] == -1) {
+                    color[v] = color[u] ^ 1;
+                    q.push(v);
+                }
+            }
+        }
+        minB += min(cnt0, cnt1);
+        maxB += max(cnt0, cnt1);
     }
-    cout << ans1 << " " << ans2;
+    cout << minB << ' ' << maxB << endl;
     return 0;
 }
-/*
-========================================================================
-                        Programed by KaoXiqi                           |
-                         TTHILLTT.github.io                            |
-                    Powered by Visual Studio Code                      |
-========================================================================
-*/
