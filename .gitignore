@@ -1,0 +1,22 @@
+# Compiled executables
+*.exe
+
+# Object files & build outputs
+*.o
+*.obj
+*.out
+build/
+
+# Testing files
+Testing.cpp
+Testing.exe
+
+# IDE / Editor
+.vs/
+*.swp
+*.swo
+*~
+
+# Windows
+desktop.ini
+Thumbs.db
