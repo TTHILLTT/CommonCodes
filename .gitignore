@@ -13,6 +13,7 @@ Testing.exe
 
 # IDE / Editor
 .vs/
+.vscode/
 *.swp
 *.swo
 *~
