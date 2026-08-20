@@ -2,26 +2,111 @@
 #define endl '\n'
 using namespace std;
 typedef long long LL;
-inline LL read() {
-    LL s = 0, w = 1;
-    char ch = getchar();
-    while (ch < '0' || ch > '9') {
-//      if(ch=='-')w=-1;
-        ch = getchar();
+
+struct Edge {
+    LL u, v, id, w;
+    bool operator<(const Edge& other) const {
+        if (w != other.w) return w < other.w;
+        return id < other.id;
     }
-    while (ch >= '0' && ch <= '9') {
-        s = s * 10 + ch - '0', ch = getchar();
+};
+
+struct DSU {
+    vector<LL> fa;
+    DSU(LL n) { fa.resize(n + 1); iota(fa.begin(), fa.end(), 0); }
+    LL find(LL x) { return fa[x] == x ? x : fa[x] = find(fa[x]); }
+    bool unite(LL a, LL b) {
+        a = find(a); b = find(b);
+        if (a == b) return false;
+        fa[b] = a;
+        return true;
     }
-    return s * w;
-}
+};
 
 int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
-    cout.tie(nullptr);
-    // freopen(".in","r",stdin);
-    // freopen(".out","w",stdout);
-    
+    LL n, m;
+    cin >> n >> m;
+    vector<Edge> edges(m);
+    for (LL i = 0; i < m; i++) {
+        cin >> edges[i].u >> edges[i].v >> edges[i].w;
+        edges[i].id = i + 1;
+    }
+    vector<Edge> sorted_edges = edges;
+    sort(sorted_edges.begin(), sorted_edges.end());
+    DSU dsu(n);
+    vector<vector<pair<LL, LL>>> tree(n + 1);
+    vector<LL> inMST(m + 1, 0);
+    LL sum = 0, cnt = 0;
+    for (auto &e : sorted_edges) {
+        if (dsu.unite(e.u, e.v)) {
+            inMST[e.id] = 1;
+            sum += e.w;
+            tree[e.u].push_back({e.v, e.id});
+            tree[e.v].push_back({e.u, e.id});
+            cnt++;
+            if (cnt == n - 1) break;
+        }
+    }
+    if (cnt < n - 1) {
+        for (LL i = 1; i <= m; i++) cout << -1 << endl;
+        return 0;
+    }
+    vector<LL> fa(n + 1, 0), dep(n + 1, 0), v2id(n + 1, 0), ww(n + 1, 0);
+    queue<LL> q;
+    q.push(1);
+    fa[1] = 0;
+    dep[1] = 0;
+    vector<LL> vis(n + 1, 0);
+    vis[1] = 1;
+    while (!q.empty()) {
+        LL u = q.front(); q.pop();
+        for (auto [v, id] : tree[u]) {
+            if (vis[v]) continue;
+            vis[v] = 1;
+            fa[v] = u;
+            dep[v] = dep[u] + 1;
+            v2id[v] = id;
+            ww[v] = edges[id - 1].w;
+            q.push(v);
+        }
+    }
+    vector<LL> f(n + 1);
+    iota(f.begin(), f.end(), 0);
+    function<LL(LL)> find = [&](LL x) -> LL {
+        return f[x] == x ? x : f[x] = find(f[x]);
+    };
+    vector<LL> ans(m + 1, -1);
+    vector<Edge> nonTree;
+    for (auto &e : edges) {
+        if (!inMST[e.id]) nonTree.push_back(e);
+    }
+    sort(nonTree.begin(), nonTree.end(), [](const Edge & a, const Edge & b) {
+        return a.w < b.w;
+    });
+    for (auto &e : nonTree) {
+        ans[e.id] = sum;
+        if (e.u == e.v) continue;
+        LL u = e.u, v = e.v, w = e.w;
+        while (true) {
+            u = find(u);
+            v = find(v);
+            if (u == v) break;
+            if (dep[u] < dep[v]) swap(u, v);
+            LL id = v2id[u];
+            if (id != 0) {
+                LL newVal = sum - ww[u] + w;
+                if (ans[id] == -1 || newVal < ans[id]) ans[id] = newVal;
+                f[u] = fa[u];
+            } else {
+                break;
+            }
+        }
+    }
+    for (LL i = 1; i <= m; i++) {
+        cout << ans[i] << endl;
+    }
     return 0;
 }
 /*

@@ -14,14 +14,72 @@ inline LL read() {
     }
     return s * w;
 }
-
+const LL N = 60005;
+LL mx[N * 4], lazy[N * 4], a[N], n, m;
+void push_down(LL p) {
+    if (lazy[p]) {
+        lazy[p * 2] += lazy[p];
+        lazy[p * 2 + 1] += lazy[p];
+        mx[p * 2] += lazy[p];
+        mx[p * 2 + 1] += lazy[p];
+        lazy[p] = 0;
+    }
+}
+void update(LL p, LL l, LL r, LL ql, LL qr, LL val) {
+    if (ql <= l && r <= qr) {
+        mx[p] += val;
+        lazy[p] += val;
+        return;
+    }
+    push_down(p);
+    LL mid = (l + r) / 2;
+    if (ql <= mid) {
+        update(p * 2, l, mid, ql, qr, val);
+    }
+    if (qr > mid) {
+        update(p * 2 + 1, mid + 1, r, ql, qr, val);
+    }
+    mx[p] = max(mx[p * 2], mx[p * 2 + 1]);
+}
+LL query(LL p, LL l, LL r, LL ql, LL qr) {
+    if (ql <= l && r <= qr) {
+        return mx[p];
+    }
+    push_down(p);
+    LL mid = (l + r) / 2;
+    LL ans = 0;
+    if (ql <= mid) {
+        ans = max(ans, query(p * 2, l, mid, ql, qr));
+    }
+    if (qr > mid) {
+        ans = max(ans, query(p * 2 + 1, mid + 1, r, ql, qr));
+    }
+    return ans;
+}
 int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
     cout.tie(nullptr);
     // freopen(".in","r",stdin);
     // freopen(".out","w",stdout);
-    
+    LL c, s, r;
+    cin >> c >> s >> r;
+    for (LL i = 0; i < c; i++) {
+        mx[i] = 0;
+        lazy[i] = 0;
+    }
+    while (r--) {
+        LL o, d, n;
+        cin >> o >> d >> n;
+        LL l = o, r = d - 1;
+        LL cur = query(1, 1, c - 1, l, r);
+        if(cur+n<=s){
+            cout << "T" << endl;
+            update(1, 1, c - 1, l, r, n);
+        } else {
+            cout << "N" << endl;
+        }
+    }
     return 0;
 }
 /*

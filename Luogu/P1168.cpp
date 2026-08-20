@@ -1,27 +1,53 @@
 #include <bits/stdc++.h>
-#define endl '\n'
 using namespace std;
 typedef long long LL;
-inline LL read() {
-    LL s = 0, w = 1;
-    char ch = getchar();
-    while (ch < '0' || ch > '9') {
-//      if(ch=='-')w=-1;
-        ch = getchar();
-    }
-    while (ch >= '0' && ch <= '9') {
-        s = s * 10 + ch - '0', ch = getchar();
-    }
-    return s * w;
+const LL N = 100005;
+LL n, tree[N], a[N], b[N];
+LL lowbit(LL x) {
+    return x & -x;
 }
-
+void add(LL x, LL val) {
+    while (x <= n) {
+        tree[x] += val;
+        x += lowbit(x);
+    }
+}
+LL kth(LL k) {
+    LL idx = 0;
+    LL bit = 1;
+    while ((bit << 1) <= n) {
+        bit <<= 1;
+    }
+    while (bit) {
+        LL nxt = idx + bit;
+        if (nxt <= n && tree[nxt] < k) {
+            idx = nxt;
+            k -= tree[nxt];
+        }
+        bit >>= 1;
+    }
+    return idx + 1;
+}
 int main() {
     ios::sync_with_stdio(false);
-    cin.tie(nullptr);
-    cout.tie(nullptr);
-    // freopen(".in","r",stdin);
-    // freopen(".out","w",stdout);
-    
+    cin.tie(0);
+    cout.tie(0);
+    cin >> n;
+    for (LL i = 1; i <= n; i++) {
+        cin >> a[i];
+        b[i] = a[i];
+    }
+    sort(b + 1, b + n + 1);
+    LL m = unique(b + 1, b + n + 1) - (b + 1);
+    for (LL i = 1; i <= n; i++) {
+        LL x = a[i];
+        LL id = lower_bound(b + 1, b + m + 1, x) - b;
+        add(id, 1);
+        if (i % 2 == 1) {
+            LL pos = kth((i + 1) / 2);
+            cout << b[pos] << endl;
+        }
+    }
     return 0;
 }
 /*

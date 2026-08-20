@@ -14,14 +14,58 @@ inline LL read() {
     }
     return s * w;
 }
-
+LL n, p[500005], bit[500005], res[500005];
+LL lowbit(LL x) {
+    return x & -x;
+}
+void update(LL x) {
+    while (x <= n) {
+        bit[x]--;
+        x += lowbit(x);
+    }
+}
+LL query(LL x) {
+    LL ans = 0;
+    while (x > 0) {
+        ans += bit[x];
+        x -= lowbit(x);
+    }
+    return ans;
+}
+LL ffind(LL k) {
+    LL l = 1, r = n, ans = 1;
+    while(l <= r) {
+        LL mid = (l + r) >> 1;
+        if (query(mid) >= k) {
+            ans = mid;
+            r = mid - 1;
+        } else {
+            l = mid + 1;
+        }
+    }
+    return ans;
+}
 int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
     cout.tie(nullptr);
     // freopen(".in","r",stdin);
     // freopen(".out","w",stdout);
-    
+    cin >> n;
+    for (LL i = 1; i <= n; i++) {
+        cin >> p[i];
+    }
+    for (LL i = 1; i <= n; i++) {
+        bit[i] = lowbit(i);
+    }
+    for (LL i = n; i >= 1; i--) {
+        LL pos = ffind(p[i]);
+        res[pos] = i;
+        update(pos);
+    }
+    for (LL i = 1; i <= n; i++) {
+        cout << res[i] << " ";
+    }
     return 0;
 }
 /*

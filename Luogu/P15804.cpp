@@ -15,13 +15,36 @@ inline LL read() {
     return s * w;
 }
 
+LL n, q, f[1005], l[100005], r[100005], cnt, pre[100005];
 int main() {
-    ios::sync_with_stdio(false);
-    cin.tie(nullptr);
-    cout.tie(nullptr);
-    // freopen(".in","r",stdin);
-    // freopen(".out","w",stdout);
-    
+    cin >> n >> q;
+    for (LL i = 1; i <= n; i++) {
+        LL x;
+        cin >> x;
+        if (x) {
+            l[++cnt] = x;
+            r[cnt] = i;
+        }
+    }
+    for (LL i = 1; i <= cnt; i++) {
+        for (LL j = 1; j < i; j++) {
+            if (r[j] <= l[i]) {
+                pre[i] = j;
+            }
+        }
+    }
+    while (q--) {
+        LL x, y;
+        cin >> x >> y;
+        memset(f, 0, sizeof f);
+        for (LL i = 1; i <= cnt; i++) {
+            f[i] = f[i - 1];
+            if (l[i] >= y && r[i] <= x) {
+                f[i] = max(f[i], f[pre[i]] + r[i] - l[i] - 1);
+            }
+        }
+        cout << x - y - f[cnt] << endl;
+    }
     return 0;
 }
 /*

@@ -14,14 +14,14 @@ inline LL read() {
     }
     return s * w;
 }
-
+LL n;
 int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
     cout.tie(nullptr);
     // freopen(".in","r",stdin);
     // freopen(".out","w",stdout);
-    
+    cin >> n;
     return 0;
 }
 /*

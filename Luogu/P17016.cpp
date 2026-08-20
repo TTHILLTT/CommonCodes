@@ -14,14 +14,79 @@ inline LL read() {
     }
     return s * w;
 }
+LL n, f[100005], sz[100005];
+long double l;
 
+void init() {
+    for (LL i = 1; i <= n; i++) {
+        f[i] = i;
+        sz[i] = 1;
+    }
+}
+
+LL find(LL x) {
+    if (f[x] == x) return x;
+    return f[x] = find(f[x]);
+}
+
+void merge(LL x, LL y) {
+    x = find(x);
+    y = find(y);
+    if (x == y) return;
+    if (sz[x] < sz[y]) swap(x, y);
+    f[y] = x;
+    sz[x] += sz[y];
+}
 int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
     cout.tie(nullptr);
     // freopen(".in","r",stdin);
     // freopen(".out","w",stdout);
-    
+    cin >> n >> l;
+    vector<pair<LL, LL>> pos(n + 1);
+    for (LL i = 1; i <= n; i++) {
+        cin >> pos[i].first >> pos[i].second;
+    }
+    if(n==1){
+        cout << fixed << setprecision(2) << 0.00;
+        return 0;
+    }
+    vector<tuple<long double, int, int>> edges;
+    edges.reserve(n * (n - 1) / 2);
+
+    for (int i = 1; i <= n; ++i) {
+        for (int j = i + 1; j <= n; ++j) {
+            long long dx = 1LL * pos[i].first - pos[j].first;
+            long long dy = 1LL * pos[i].second - pos[j].second;
+            long double dist = sqrtl((long double)(dx * dx + dy * dy));
+            if (dist <= l) {
+                edges.emplace_back(dist, i, j);
+            }
+        }
+    }
+
+    sort(edges.begin(), edges.end());
+    init();
+
+    long double ans = 0.0L;
+    int used = 0;
+
+    for (auto &[w, u, v] : edges) {
+        if (find(u) != find(v)) {
+            merge(u, v);
+            ans += w;
+            ++used;
+            if (used == n - 1) break;
+        }
+    }
+
+    if (used != n - 1) {
+        cout << "Impossible\n";
+    } else {
+        cout << fixed << setprecision(2) << ans << '\n';
+    }
+
     return 0;
 }
 /*

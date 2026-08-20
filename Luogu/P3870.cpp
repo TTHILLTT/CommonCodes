@@ -14,14 +14,77 @@ inline LL read() {
     }
     return s * w;
 }
-
+struct Node {
+    LL on, off, lazy;
+};
+LL n, m;
+Node tree[400005];
+void build(LL p, LL l, LL r) {
+    tree[p].lazy = 0;
+    if (l == r) {
+        tree[p].on = 0;
+        tree[p].off = 1;
+        return;
+    }
+    LL mid = (l + r) >> 1;
+    build(p << 1, l, mid);
+    build(p << 1 | 1, mid + 1, r);
+    tree[p].on = tree[p << 1].on + tree[p << 1 | 1].on;
+    tree[p].off = tree[p << 1].off + tree[p << 1 | 1].off;
+}
+void pushdown(LL p) {
+    if (tree[p].lazy) {
+        swap(tree[p << 1].on, tree[p << 1].off);
+        swap(tree[p << 1 | 1].on, tree[p << 1 | 1].off);
+        tree[p << 1].lazy ^= 1;
+        tree[p << 1 | 1].lazy ^= 1;
+        tree[p].lazy = 0;
+    }
+}
+void update(LL p, LL l, LL r, LL L, LL R) {
+    if (L <= l && r <= R) {
+        swap(tree[p].on, tree[p].off);
+        tree[p].lazy ^= 1;
+        return;
+    }
+    pushdown(p);
+    LL mid = (l + r) >> 1;
+    if (L <= mid) {
+        update(p << 1, l, mid, L, R);
+    }
+    if (R > mid) {
+        update(p << 1 | 1, mid + 1, r, L, R);
+    }
+    tree[p].on = tree[p << 1].on + tree[p << 1 | 1].on;
+    tree[p].off = tree[p << 1].off + tree[p << 1 | 1].off;
+}
+LL query(LL p, LL l, LL r, LL L, LL R) {
+    if (L <= l && r <= R) return tree[p].on;
+    pushdown(p);
+    LL mid = (l + r) >> 1;
+    LL res = 0;
+    if (L <= mid) res += query(p << 1, l, mid, L, R);
+    if (R > mid) res += query(p << 1 | 1, mid + 1, r, L, R);
+    return res;
+}
 int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
     cout.tie(nullptr);
     // freopen(".in","r",stdin);
     // freopen(".out","w",stdout);
-    
+    cin >> n >> m;
+    build(1, 1, n);
+    while (m--) {
+        LL op, l, r;
+        cin >> op >> l >> r;
+        if (op == 0) {
+            update(1, 1, n, l, r);
+        }
+        else {
+            cout << query(1, 1, n, l, r) << endl;
+        }
+    }
     return 0;
 }
 /*

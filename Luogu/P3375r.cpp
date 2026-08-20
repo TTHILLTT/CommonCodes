@@ -2,6 +2,7 @@
 #define endl '\n'
 using namespace std;
 typedef long long LL;
+typedef unsigned long long ULL;
 inline LL read() {
     LL s = 0, w = 1;
     char ch = getchar();
@@ -14,14 +15,26 @@ inline LL read() {
     }
     return s * w;
 }
-
+ULL p[1000005], h[1000005], n, m;
+void init() {
+    p[0] = 1, h[0] = 0;
+    for (int i = 1; i <= n; i++) {
+        p[i] = p[i - 1] * P;
+        h[i] = h[i - 1] * P + s[i];
+    }
+}
+ULL getHash(int l, int r) {
+    return h[r] - h[l - 1] * p[r - l + 1];
+}
 int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
     cout.tie(nullptr);
     // freopen(".in","r",stdin);
     // freopen(".out","w",stdout);
-    
+    cin>>n>>m;
+    init();
+
     return 0;
 }
 /*

@@ -2,11 +2,12 @@
 #define endl '\n'
 using namespace std;
 typedef long long LL;
+const LL N = 200005, INF = 1e18;
 inline LL read() {
     LL s = 0, w = 1;
     char ch = getchar();
     while (ch < '0' || ch > '9') {
-//      if(ch=='-')w=-1;
+//      if(ch == '-') w = -1;
         ch = getchar();
     }
     while (ch >= '0' && ch <= '9') {
@@ -14,14 +15,42 @@ inline LL read() {
     }
     return s * w;
 }
-
+vector<pair<LL, LL>> adj[N];
+LL dist[N];
 int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
-    cout.tie(nullptr);
-    // freopen(".in","r",stdin);
-    // freopen(".out","w",stdout);
-    
+    LL n, m, s, q;
+    cin >> n >> m >> s >> q;
+    for (LL i = 0; i < m; i++) {
+        LL u, v;
+        LL l;
+        cin >> u >> v >> l;
+        adj[u].push_back({v, l});
+        adj[v].push_back({u, l});
+    }
+    fill(dist, dist + n + 1, INF);
+    priority_queue<pair<LL, LL>, vector<pair<LL, LL>>, greater<pair<LL, LL>>> pq;
+    dist[s] = 0;
+    pq.push({0, s});
+    while (!pq.empty()) {
+        auto d = pq.top().first, u = pq.top().second;
+        pq.pop();
+        if (d != dist[u]) {
+            continue;
+        }
+        for (auto [v, w] : adj[u]) {
+            if (dist[v] > dist[u] + w) {
+                dist[v] = dist[u] + w;
+                pq.push({dist[v], v});
+            }
+        }
+    }
+    while (q--) {
+        LL h;
+        cin >> h;
+        cout << dist[h] << endl;
+    }
     return 0;
 }
 /*

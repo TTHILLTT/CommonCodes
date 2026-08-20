@@ -14,17 +14,59 @@ inline LL read() {
     }
     return s * w;
 }
-
+LL n, m;
+LL a[100005];
+LL t1[100005], t2[100005];
+void add(LL *t, LL pos, LL val) {
+    for (; pos <= n + 1; pos += pos & (-pos)) {
+        t[pos] += val;
+    }
+}
+LL sum(LL *t, LL pos) {
+    LL res = 0;
+    for (; pos > 0; pos -= pos & (-pos)) {
+        res += t[pos];
+    }
+    return res;
+}
+void add_range(LL L, LL R, LL v) {
+    add(t1, L, v);
+    add(t1, R + 1, -v);
+    add(t2, L, v * (L - 1));
+    add(t2, R + 1, -v * R);
+}
+LL prefix(LL p) {
+    return p * sum(t1, p) - sum(t2, p);
+}
 int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
     cout.tie(nullptr);
     // freopen(".in","r",stdin);
     // freopen(".out","w",stdout);
-    
+    cin >> n >> m;
+    for (LL i = 1; i <= n; i++) {
+        cin >> a[i];
+    }
+    while (m--) {
+        LL opt;
+        cin >> opt;
+        if (opt == 1) {
+            LL l, r, K, D;
+            cin >> l >> r >> K >> D;
+            add_range(l, l, K);
+            add_range(l + 1, r, D);
+            add_range(r + 1, r + 1, -(K + (r - l) * D));
+        } else {
+            LL p;
+            cin >> p;
+            cout << a[p] + prefix(p) << endl;
+        }
+    }
     return 0;
 }
 /*
+梁圣的恩情永远还不完
 ⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
 ⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
 ⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠿⠿⠟⠛⠛⠿⠿⢿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿

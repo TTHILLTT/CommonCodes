@@ -1,27 +1,67 @@
 #include <bits/stdc++.h>
-#define endl '\n'
 using namespace std;
-typedef long long LL;
-inline LL read() {
-    LL s = 0, w = 1;
-    char ch = getchar();
-    while (ch < '0' || ch > '9') {
-//      if(ch=='-')w=-1;
-        ch = getchar();
-    }
-    while (ch >= '0' && ch <= '9') {
-        s = s * 10 + ch - '0', ch = getchar();
-    }
-    return s * w;
-}
+
+using LL = long long;
+
+const LL INF = (LL)4e18;
+const LL MOD = 1000000000LL;
 
 int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
-    cout.tie(nullptr);
-    // freopen(".in","r",stdin);
-    // freopen(".out","w",stdout);
-    
+
+    int n, m;
+    cin >> n >> m;
+
+    vector<vector<pair<int, int>>> adj(n + 1);
+    for (int i = 0; i < m; ++i) {
+        int u, v, w;
+        cin >> u >> v >> w;
+        adj[u].emplace_back(v, w);
+        adj[v].emplace_back(u, w);
+    }
+
+    LL ans = 0;
+    LL d[105][105];
+
+    for (int l = 1; l <= n; ++l) {
+        for (int i = 1; i <= n; ++i) {
+            for (int j = 1; j <= n; ++j) {
+                d[i][j] = INF;
+            }
+        }
+        for (int i = 1; i <= n; ++i) d[i][i] = 0;
+
+        for (int r = l; r <= n; ++r) {
+            for (int i = l; i < r; ++i) {
+                d[i][r] = INF;
+                d[r][i] = INF;
+                for (auto [v, w] : adj[r]) {
+                    if (l <= v && v < r && d[i][v] + w < d[i][r]) {
+                        d[i][r] = d[i][v] + w;
+                    }
+                }
+                d[r][i] = d[i][r];
+            }
+
+            for (int i = l; i <= r; ++i) {
+                for (int j = l; j <= r; ++j) {
+                    if (d[i][r] + d[r][j] < d[i][j]) {
+                        d[i][j] = d[i][r] + d[r][j];
+                    }
+                }
+            }
+
+            for (int i = l; i <= r; ++i) {
+                for (int j = i; j <= r; ++j) {
+                    ans += d[i][j];
+                    if (ans >= MOD) ans %= MOD;
+                }
+            }
+        }
+    }
+
+    cout << ans % MOD << '\n';
     return 0;
 }
 /*

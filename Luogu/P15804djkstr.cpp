@@ -2,25 +2,147 @@
 #define endl '\n'
 using namespace std;
 typedef long long LL;
-inline LL read() {
-    LL s = 0, w = 1;
-    char ch = getchar();
-    while (ch < '0' || ch > '9') {
-//      if(ch=='-')w=-1;
-        ch = getchar();
-    }
-    while (ch >= '0' && ch <= '9') {
-        s = s * 10 + ch - '0', ch = getchar();
-    }
-    return s * w;
-}
 
 int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
     cout.tie(nullptr);
-    // freopen(".in","r",stdin);
-    // freopen(".out","w",stdout);
+    
+    int n, q;
+    cin >> n >> q;
+    
+    vector<int> r(n + 1, 0);
+    vector<int> special;  // 有引用的消息编号
+    
+    for (int i = 1; i <= n; i++) {
+        cin >> r[i];
+        if (r[i] > 0) {
+            special.push_back(i);
+        }
+    }
+    
+    int m = special.size();  // m <= 1000
+    
+    // 预处理：从每个特殊点出发，使用 Dijkstra 计算到所有点的最短距离
+    // 但由于 n 可能很大，我们只需要计算特殊点之间的最短距离
+    // 以及从 x 到特殊点、从特殊点到 y 的距离
+    
+    // 实际上，对于询问 (x, y)，最优路径一定是：
+    // 1. 从 x 向左走到某个特殊点 t1（或直接用 x 本身）
+    // 2. 在特殊点之间通过引用边跳转
+    // 3. 从某个特殊点 t2 向左走到 y
+    
+    // 预处理特殊点之间的最短距离
+    vector<vector<int>> dist(m, vector<int>(m, INT_MAX));
+    
+    // 建立特殊点的图
+    // 特殊点 i 到特殊点 j 的边：
+    // 1. 如果 j < i，可以从 i 向左走到 j，距离为 i - j
+    // 2. 如果 r[special[i]] > 0，可以跳转到 r[special[i]]，距离为 1
+    
+    for (int i = 0; i < m; i++) {
+        dist[i][i] = 0;
+        // Dijkstra from special[i]
+        priority_queue<pair<int, int>, vector<pair<int, int>>, greater<>> pq;
+        pq.push({0, i});
+        
+        while (!pq.empty()) {
+            auto [d, u] = pq.top();
+            pq.pop();
+            
+            if (d > dist[i][u]) continue;
+            
+            int pos = special[u];
+            
+            // 向左走到前一个特殊点
+            if (u > 0) {
+                int v = u - 1;
+                int nd = d + (pos - special[v]);
+                if (nd < dist[i][v]) {
+                    dist[i][v] = nd;
+                    pq.push({nd, v});
+                }
+            }
+            
+            // 向右走到后一个特殊点
+            if (u + 1 < m) {
+                int v = u + 1;
+                int nd = d + (special[v] - pos);
+                if (nd < dist[i][v]) {
+                    dist[i][v] = nd;
+                    pq.push({nd, v});
+                }
+            }
+            
+            // 使用引用边
+            if (r[pos] > 0) {
+                int target = r[pos];
+                // 找到 target 对应的特殊点下标
+                auto it = lower_bound(special.begin(), special.end(), target);
+                if (it != special.end() && *it == target) {
+                    int v = it - special.begin();
+                    int nd = d + 1;
+                    if (nd < dist[i][v]) {
+                        dist[i][v] = nd;
+                        pq.push({nd, v});
+                    }
+                } else if (it != special.begin()) {
+                    // target 不是特殊点，跳到 target 左边的最大特殊点
+                    int v = (it - special.begin()) - 1;
+                    if (special[v] < target) {
+                        int nd = d + 1 + (target - special[v]);
+                        if (nd < dist[i][v]) {
+                            dist[i][v] = nd;
+                            pq.push({nd, v});
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    while (q--) {
+        int x, y;
+        cin >> x >> y;
+        
+        int ans = x - y;  // 直接向左走
+        
+        // 找到 x 左边的最大特殊点
+        auto it_x = upper_bound(special.begin(), special.end(), x);
+        int start_idx = -1;
+        if (it_x != special.begin()) {
+            start_idx = (it_x - special.begin()) - 1;
+        }
+        
+        // 找到 y 左边（包括 y）的最大特殊点
+        auto it_y = upper_bound(special.begin(), special.end(), y);
+        if (it_y != special.begin()) {
+            it_y--;
+        }
+        
+        // 枚举所有可能经过的特殊点
+        for (int i = 0; i < m; i++) {
+            if (special[i] >= y && special[i] <= x) {
+                // 从 x 到特殊点 i
+                int d1 = x - special[i];
+                if (start_idx >= 0 && dist[start_idx][i] < INT_MAX) {
+                    d1 = min(d1, dist[start_idx][i] + (x - special[start_idx]));
+                }
+                
+                // 从特殊点 i 到 y
+                int d2 = special[i] - y;
+                for (int j = 0; j < m; j++) {
+                    if (special[j] >= y && dist[i][j] < INT_MAX) {
+                        d2 = min(d2, dist[i][j] + (special[j] - y));
+                    }
+                }
+                
+                ans = min(ans, d1 + d2);
+            }
+        }
+        
+        cout << ans << endl;
+    }
     
     return 0;
 }

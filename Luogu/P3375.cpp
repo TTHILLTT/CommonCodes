@@ -14,14 +14,40 @@ inline LL read() {
     }
     return s * w;
 }
-
+LL nxt[1000005];
 int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
     cout.tie(nullptr);
     // freopen(".in","r",stdin);
     // freopen(".out","w",stdout);
-    
+    string s, t;
+    cin >> s >> t;
+    LL n = s.size(), m = t.size();
+    s = " " + s;
+    t = " " + t;
+    for (LL i = 2, j = 0; i <= m; i++) {
+        while (j && t[i] != t[j + 1]) {
+            j = nxt[j];
+        }
+        if (t[i] == t[j + 1]) {
+            j++;
+        }
+        nxt[i] = j;
+    }
+    for (LL i = 1, j = 0; i <= n; i++) {
+        while (j && s[i] != t[j + 1])j = nxt[j];
+        if (s[i] == t[j + 1]) {
+            j++;
+        }
+        if (j == m) {
+            cout << i - m + 1 << endl;
+            j = nxt[j];
+        }
+    }
+    for (LL i = 1; i <= m; i++) {
+        cout << nxt[i] << " ";
+    }
     return 0;
 }
 /*
